@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="es-419">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Birthday Wishlist</title>
+<title>Lista de Cumpleaños</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -52,31 +52,31 @@
   <h1 id="title"></h1>
   <p id="subtitle"></p>
 </header>
-<main id="list"><div class="status">Loading…</div></main>
+<main id="list"><div class="status">Cargando…</div></main>
 
 <dialog id="dlg">
   <form method="dialog" id="form">
     <strong id="dlgTitle"></strong>
-    <input id="who" placeholder="Your name (only the host sees it)" required maxlength="60">
+    <input id="who" placeholder="Tu nombre (solo lo ve el cumpleañero)" required maxlength="60">
     <div class="row">
-      <button type="button" class="cancel" id="cancel">Cancel</button>
-      <button type="submit">Reserve</button>
+      <button type="button" class="cancel" id="cancel">Cancelar</button>
+      <button type="submit">Apartar</button>
     </div>
   </form>
 </dialog>
 
 <script>
-// ===== Edit these =====
+// ===== Edita esto =====
 const CONFIG = {
-  title: "My Birthday Wishlist",
-  subtitle: "If you'd like to get me something, here are a few ideas. Tap “Reserve” so nobody buys the same gift twice.",
-  // Paste your Google Apps Script web app URL here (see README):
+  title: "Mi Lista de Cumpleaños",
+  subtitle: "Si quieres darme algo, aquí tienes algunas ideas. Toca “Apartar” para que nadie compre el mismo regalo dos veces.",
+  // Pega aquí la URL de tu Web App de Google Apps Script (ver README):
   apiUrl: "",
 };
 // =======================
 
 const SAMPLE = [
-  { id: "1", name: "Cafetera", link: "https://example.com", image: "", note: "Any simple drip one", reserved: false },
+  { id: "1", name: "Cafetera", link: "https://example.com", image: "", note: "Una sencilla de goteo", reserved: false },
   { id: "2", name: "Florero naranja", link: "https://example.com", image: "", note: "", reserved: true },
 ];
 
@@ -93,13 +93,13 @@ async function load() {
     const data = await r.json();
     render(data.items || []);
   } catch (e) {
-    list.innerHTML = '<div class="status">Couldn’t load the list. Try refreshing.</div>';
+    list.innerHTML = '<div class="status">No se pudo cargar la lista. Intenta recargar la página.</div>';
   }
 }
 
 function render(items) {
   list.innerHTML = "";
-  if (!items.length) { list.innerHTML = '<div class="status">No items yet.</div>'; return; }
+  if (!items.length) { list.innerHTML = '<div class="status">Todavía no hay regalos.</div>'; return; }
   for (const it of items) {
     const card = document.createElement("article");
     card.className = "card" + (it.reserved ? " reserved" : "");
@@ -115,13 +115,13 @@ function render(items) {
     const actions = document.createElement("div"); actions.className = "actions";
     if (it.link) {
       const a = document.createElement("a"); a.className = "link"; a.href = it.link;
-      a.target = "_blank"; a.rel = "noopener"; a.textContent = "View";
+      a.target = "_blank"; a.rel = "noopener"; a.textContent = "Ver";
       actions.appendChild(a);
     }
     const b = document.createElement("button");
-    b.textContent = it.reserved ? "Reserved ✓" : "Reserve";
+    b.textContent = it.reserved ? "Apartado ✓" : "Apartar";
     b.disabled = !!it.reserved;
-    b.onclick = () => { current = it; document.getElementById("dlgTitle").textContent = "Reserve “" + it.name + "”?"; dlg.showModal(); };
+    b.onclick = () => { current = it; document.getElementById("dlgTitle").textContent = "¿Apartar “" + it.name + "”?"; dlg.showModal(); };
     actions.appendChild(b);
     body.appendChild(actions);
     card.appendChild(body);
@@ -140,8 +140,8 @@ document.getElementById("form").onsubmit = async (e) => {
     const url = CONFIG.apiUrl + "?action=reserve&id=" + encodeURIComponent(current.id) + "&who=" + encodeURIComponent(who);
     const r = await fetch(url);
     const data = await r.json();
-    if (!data.ok) alert(data.error === "taken" ? "Someone just reserved this one!" : "Something went wrong, try again.");
-  } catch (e) { alert("Something went wrong, try again."); }
+    if (!data.ok) alert(data.error === "taken" ? "¡Alguien acaba de apartar este regalo!" : "Algo salió mal, intenta de nuevo.");
+  } catch (e) { alert("Algo salió mal, intenta de nuevo."); }
   load();
 };
 

@@ -1,12 +1,12 @@
 # 🎂 Birthday Wishlist
 
-A one-page wishlist hosted free on GitHub Pages. Friends can tap **Reserve** on a gift so nobody buys the same thing twice. The list lives in a Google Sheet, so you can add or edit items from your phone without touching code.
+A one-page wishlist hosted free on GitHub Pages. Friends can tap **Apartar** (Reserve) on a gift so nobody buys the same thing twice. The list lives in a Google Sheet, so you can add or edit items from your phone without touching code.
 
 ## How it works
 
 - `index.html` — the page friends visit (GitHub Pages).
 - `apps-script.gs` — a tiny backend that runs inside your Google Sheet. It reads the items and records reservations.
-- Visitors only see "Reserved ✓". Who reserved it is written in the sheet, so only you can see it (or don't look, to keep the surprise!).
+- Visitors only see "Apartado ✓" (Reserved). Who reserved it is written in the sheet, so only you can see it (or don't look, to keep the surprise!).
 
 ## Setup (≈10 minutes)
 
