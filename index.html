@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Birthday Wishlist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fdf6ee; --card: #ffffff; --ink: #2b2118; --muted: #7a6a5c;
+    --accent: #e8643c; --accent-ink: #ffffff; --line: #eadfd2; --done: #9bb59a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1d1712; --card: #2a221b; --ink: #f5ece2; --muted: #b5a493;
+            --accent: #f07a52; --line: #3d3228; --done: #6f8f6e; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font-family: Inter, system-ui, sans-serif; line-height: 1.5; }
+  header { padding: 48px 16px 24px; text-align: center; }
+  h1 { font-family: Fraunces, serif; font-weight: 800; font-size: clamp(2rem, 7vw, 3.2rem);
+       margin: 0 0 8px; letter-spacing: -0.02em; }
+  header p { margin: 0 auto; max-width: 520px; color: var(--muted); }
+  main { max-width: 960px; margin: 0 auto; padding: 0 16px 64px;
+         display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+          overflow: hidden; display: flex; flex-direction: column; }
+  .card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: var(--line); }
+  .body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .name { font-family: Fraunces, serif; font-weight: 600; font-size: 1.2rem; margin: 0; }
+  .note { color: var(--muted); font-size: .92rem; margin: 0; }
+  .actions { margin-top: auto; display: flex; gap: 8px; padding-top: 8px; }
+  a.link, button { flex: 1; text-align: center; padding: 10px 12px; border-radius: 10px;
+         font: 600 .95rem Inter, sans-serif; cursor: pointer; text-decoration: none; }
+  a.link { border: 1px solid var(--line); color: var(--ink); }
+  button { border: 0; background: var(--accent); color: var(--accent-ink); }
+  button:disabled { background: var(--done); cursor: default; }
+  .card.reserved img { filter: grayscale(.8); opacity: .6; }
+  .status { grid-column: 1 / -1; text-align: center; color: var(--muted); padding: 32px 0; }
+  dialog { border: 0; border-radius: 16px; padding: 24px; max-width: 360px; width: calc(100% - 32px);
+           background: var(--card); color: var(--ink); }
+  dialog::backdrop { background: rgba(0,0,0,.4); }
+  dialog input { width: 100%; padding: 10px; margin: 12px 0; border-radius: 10px;
+                 border: 1px solid var(--line); font: inherit; background: var(--bg); color: var(--ink); }
+  dialog .row { display: flex; gap: 8px; }
+  dialog .cancel { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title"></h1>
+  <p id="subtitle"></p>
+</header>
+<main id="list"><div class="status">Loading…</div></main>
+
+<dialog id="dlg">
+  <form method="dialog" id="form">
+    <strong id="dlgTitle"></strong>
+    <input id="who" placeholder="Your name (only the host sees it)" required maxlength="60">
+    <div class="row">
+      <button type="button" class="cancel" id="cancel">Cancel</button>
+      <button type="submit">Reserve</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+// ===== Edit these =====
+const CONFIG = {
+  title: "My Birthday Wishlist",
+  subtitle: "If you'd like to get me something, here are a few ideas. Tap “Reserve” so nobody buys the same gift twice.",
+  // Paste your Google Apps Script web app URL here (see README):
+  apiUrl: "",
+};
+// =======================
+
+const SAMPLE = [
+  { id: "1", name: "Cafetera", link: "https://example.com", image: "", note: "Any simple drip one", reserved: false },
+  { id: "2", name: "Florero naranja", link: "https://example.com", image: "", note: "", reserved: true },
+];
+
+document.getElementById("title").textContent = CONFIG.title;
+document.getElementById("subtitle").textContent = CONFIG.subtitle;
+const list = document.getElementById("list");
+const dlg = document.getElementById("dlg");
+let current = null;
+
+async function load() {
+  if (!CONFIG.apiUrl) return render(SAMPLE);
+  try {
+    const r = await fetch(CONFIG.apiUrl + "?action=list");
+    const data = await r.json();
+    render(data.items || []);
+  } catch (e) {
+    list.innerHTML = '<div class="status">Couldn’t load the list. Try refreshing.</div>';
+  }
+}
+
+function render(items) {
+  list.innerHTML = "";
+  if (!items.length) { list.innerHTML = '<div class="status">No items yet.</div>'; return; }
+  for (const it of items) {
+    const card = document.createElement("article");
+    card.className = "card" + (it.reserved ? " reserved" : "");
+    if (it.image) {
+      const img = document.createElement("img");
+      img.src = it.image; img.alt = it.name; img.loading = "lazy";
+      card.appendChild(img);
+    }
+    const body = document.createElement("div"); body.className = "body";
+    const h = document.createElement("h2"); h.className = "name"; h.textContent = it.name;
+    body.appendChild(h);
+    if (it.note) { const p = document.createElement("p"); p.className = "note"; p.textContent = it.note; body.appendChild(p); }
+    const actions = document.createElement("div"); actions.className = "actions";
+    if (it.link) {
+      const a = document.createElement("a"); a.className = "link"; a.href = it.link;
+      a.target = "_blank"; a.rel = "noopener"; a.textContent = "View";
+      actions.appendChild(a);
+    }
+    const b = document.createElement("button");
+    b.textContent = it.reserved ? "Reserved ✓" : "Reserve";
+    b.disabled = !!it.reserved;
+    b.onclick = () => { current = it; document.getElementById("dlgTitle").textContent = "Reserve “" + it.name + "”?"; dlg.showModal(); };
+    actions.appendChild(b);
+    body.appendChild(actions);
+    card.appendChild(body);
+    list.appendChild(card);
+  }
+}
+
+document.getElementById("cancel").onclick = () => dlg.close();
+document.getElementById("form").onsubmit = async (e) => {
+  e.preventDefault();
+  const who = document.getElementById("who").value.trim();
+  if (!who || !current) return;
+  dlg.close();
+  if (!CONFIG.apiUrl) { current.reserved = true; return render(SAMPLE); }
+  try {
+    const url = CONFIG.apiUrl + "?action=reserve&id=" + encodeURIComponent(current.id) + "&who=" + encodeURIComponent(who);
+    const r = await fetch(url);
+    const data = await r.json();
+    if (!data.ok) alert(data.error === "taken" ? "Someone just reserved this one!" : "Something went wrong, try again.");
+  } catch (e) { alert("Something went wrong, try again."); }
+  load();
+};
+
+load();
+</script>
+</body>
+</html>
