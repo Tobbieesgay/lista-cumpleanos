@@ -13,7 +13,7 @@ A one-page wishlist hosted free on GitHub Pages. Friends can tap **Apartar** (Re
 ### 1. Make the Google Sheet
 1. Create a new Google Sheet.
 2. In row 1, type these headers exactly: `id | name | link | image | note | reserved_by`
-3. Add one gift per row. `id` can just be 1, 2, 3… `image` is an optional image URL. Leave `reserved_by` empty.
+3. Add one gift per row (or import `regalos.csv` via File → Import to start with the gifts already saved). `id` can just be 1, 2, 3… `image` is an optional image URL. Leave `reserved_by` empty.
 
 ### 2. Add the backend
 1. In the sheet: **Extensions → Apps Script**.
@@ -36,4 +36,4 @@ Your link will be `https://<your-username>.github.io/<repo-name>/`.
 - **Un-reserve a gift:** clear its `reserved_by` cell.
 - **Changed the script?** Deploy → Manage deployments → edit → New version (the URL stays the same).
 
-Until `apiUrl` is set, the page shows two sample items so you can preview it.
+Until `apiUrl` is set, the page shows the gifts listed in `SAMPLE` inside `index.html` so you can preview it.
