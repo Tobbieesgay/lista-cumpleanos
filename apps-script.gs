@@ -1,57 +1,39 @@
 /**
- * Backend for the birthday wishlist.
- * Lives inside a Google Sheet (Extensions → Apps Script).
+ * Backend for the birthday wishlist — it only stores reservations.
+ * The gifts themselves live in index.html (GIFTS).
  *
- * Sheet columns (row 1 = headers, exactly these):
- *   id | name | link | image | note | reserved_by
- *
- * Only the sheet owner sees "reserved_by". Visitors just see "Reserved".
+ * Lives inside an empty Google Sheet (Extensions → Apps Script).
+ * The sheet fills itself: id | reserved_by | date
+ * Only the sheet owner sees who reserved. Visitors just see "Apartado ✓".
  */
 
 function doGet(e) {
-  const action = (e.parameter.action || "list");
+  const action = e.parameter.action || "list";
   if (action === "reserve") return json(reserve(e.parameter.id, e.parameter.who));
-  return json({ items: listItems() });
+  return json({ reserved: reservedIds() });
 }
 
 function sheet() {
-  return SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+  if (sh.getLastRow() === 0) sh.appendRow(["id", "reserved_by", "date"]);
+  return sh;
 }
 
-function listItems() {
-  const rows = sheet().getDataRange().getValues();
-  const head = rows.shift().map(String);
-  const col = (n) => head.indexOf(n);
-  return rows
-    .filter(r => String(r[col("name")]).trim())
-    .map(r => ({
-      id: String(r[col("id")]),
-      name: String(r[col("name")]),
-      link: String(r[col("link")] || ""),
-      image: String(r[col("image")] || ""),
-      note: String(r[col("note")] || ""),
-      reserved: String(r[col("reserved_by")] || "").trim() !== "",
-    }));
+function reservedIds() {
+  const rows = sheet().getDataRange().getValues().slice(1);
+  return rows.map(r => String(r[0]).trim()).filter(Boolean);
 }
 
 function reserve(id, who) {
+  id = String(id || "").trim().slice(0, 100);
   who = String(who || "").trim().slice(0, 60);
   if (!id || !who) return { ok: false, error: "missing" };
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
-    const sh = sheet();
-    const rows = sh.getDataRange().getValues();
-    const head = rows[0].map(String);
-    const idCol = head.indexOf("id"), rCol = head.indexOf("reserved_by");
-    for (let i = 1; i < rows.length; i++) {
-      if (String(rows[i][idCol]) === String(id)) {
-        if (String(rows[i][rCol]).trim()) return { ok: false, error: "taken" };
-        sh.getRange(i + 1, rCol + 1).setValue(who + " · " + new Date().toLocaleString());
-        return { ok: true };
-      }
-    }
-    return { ok: false, error: "not_found" };
+    if (reservedIds().indexOf(id) !== -1) return { ok: false, error: "taken" };
+    sheet().appendRow([id, who, new Date()]);
+    return { ok: true };
   } finally {
     lock.releaseLock();
   }

@@ -73,11 +73,12 @@ const CONFIG = {
   // Pega aquí la URL de tu Web App de Google Apps Script (ver README):
   apiUrl: "",
 };
-// =======================
 
-const SAMPLE = [
-  { id: "1", name: "Mantequilla corporal", link: "https://www.virensyala.com/products/mantequilla-corporal-esencia-de-la-diosa", image: "", note: "", reserved: false },
+// Tus regalos. Cada uno necesita un id único que nunca cambie.
+const GIFTS = [
+  { id: "mantequilla-corporal", name: "Mantequilla corporal", link: "https://www.virensyala.com/products/mantequilla-corporal-esencia-de-la-diosa", image: "", note: "" },
 ];
+// =======================
 
 document.getElementById("title").textContent = CONFIG.title;
 document.getElementById("subtitle").textContent = CONFIG.subtitle;
@@ -85,15 +86,21 @@ const list = document.getElementById("list");
 const dlg = document.getElementById("dlg");
 let current = null;
 
+const localReserved = new Set();
+
 async function load() {
-  if (!CONFIG.apiUrl) return render(SAMPLE);
-  try {
-    const r = await fetch(CONFIG.apiUrl + "?action=list");
-    const data = await r.json();
-    render(data.items || []);
-  } catch (e) {
-    list.innerHTML = '<div class="status">No se pudo cargar la lista. Intenta recargar la página.</div>';
+  let reserved = new Set(localReserved);
+  if (CONFIG.apiUrl) {
+    try {
+      const r = await fetch(CONFIG.apiUrl + "?action=list");
+      const data = await r.json();
+      (data.reserved || []).forEach(id => reserved.add(String(id)));
+    } catch (e) {
+      list.innerHTML = '<div class="status">No se pudo cargar la lista. Intenta recargar la página.</div>';
+      return;
+    }
   }
+  render(GIFTS.map(g => ({ ...g, reserved: reserved.has(String(g.id)) })));
 }
 
 function render(items) {
@@ -134,7 +141,7 @@ document.getElementById("form").onsubmit = async (e) => {
   const who = document.getElementById("who").value.trim();
   if (!who || !current) return;
   dlg.close();
-  if (!CONFIG.apiUrl) { current.reserved = true; return render(SAMPLE); }
+  if (!CONFIG.apiUrl) { localReserved.add(String(current.id)); return load(); }
   try {
     const url = CONFIG.apiUrl + "?action=reserve&id=" + encodeURIComponent(current.id) + "&who=" + encodeURIComponent(who);
     const r = await fetch(url);
