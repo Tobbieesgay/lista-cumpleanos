@@ -41,6 +41,10 @@
   dialog { border: 0; border-radius: 16px; padding: 24px; max-width: 360px; width: calc(100% - 32px);
            background: var(--card); color: var(--ink); }
   dialog::backdrop { background: rgba(0,0,0,.4); }
+  #photo { padding: 0; max-width: min(92vw, 720px); width: auto; background: transparent; }
+  #photo::backdrop { background: rgba(0,0,0,.85); }
+  #photo img { display: block; max-width: 100%; max-height: 85vh; border-radius: 12px; }
+  #photo button { display: block; margin: 12px auto 0; flex: none; padding: 10px 24px; }
   dialog input { width: 100%; padding: 10px; margin: 12px 0; border-radius: 10px;
                  border: 1px solid var(--line); font: inherit; background: var(--bg); color: var(--ink); }
   dialog .row { display: flex; gap: 8px; }
@@ -63,6 +67,11 @@
       <button type="submit">Apartar</button>
     </div>
   </form>
+</dialog>
+
+<dialog id="photo">
+  <img id="photoImg" alt="">
+  <button type="button" id="photoClose">Cerrar</button>
 </dialog>
 
 <script>
@@ -110,11 +119,6 @@ function render(items) {
   for (const it of items) {
     const card = document.createElement("article");
     card.className = "card" + (it.reserved ? " reserved" : "");
-    if (it.image) {
-      const img = document.createElement("img");
-      img.src = it.image; img.alt = it.name; img.loading = "lazy";
-      card.appendChild(img);
-    }
     const body = document.createElement("div"); body.className = "body";
     const h = document.createElement("h2"); h.className = "name"; h.textContent = it.name;
     body.appendChild(h);
@@ -123,6 +127,11 @@ function render(items) {
     if (it.link) {
       const a = document.createElement("a"); a.className = "link"; a.href = it.link;
       a.target = "_blank"; a.rel = "noopener"; a.textContent = "Ver";
+      actions.appendChild(a);
+    } else if (it.image) {
+      const a = document.createElement("a"); a.className = "link"; a.href = it.image;
+      a.textContent = "Ver";
+      a.onclick = (e) => { e.preventDefault(); showPhoto(it); };
       actions.appendChild(a);
     }
     const b = document.createElement("button");
@@ -137,6 +146,15 @@ function render(items) {
 }
 
 document.getElementById("cancel").onclick = () => dlg.close();
+
+const photo = document.getElementById("photo");
+function showPhoto(it) {
+  const img = document.getElementById("photoImg");
+  img.src = it.image; img.alt = it.name;
+  photo.showModal();
+}
+document.getElementById("photoClose").onclick = () => photo.close();
+photo.addEventListener("click", (e) => { if (e.target === photo) photo.close(); });
 document.getElementById("form").onsubmit = async (e) => {
   e.preventDefault();
   const who = document.getElementById("who").value.trim();
