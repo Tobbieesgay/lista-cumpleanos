@@ -93,6 +93,7 @@ const GIFTS = [
   { id: "tetera", name: "Tetera de hierro", link: "https://casaherbolaria.com.co/products/tetera-hierro-negra-premiun-negra-300-ml", image: "", note: "Para mis tardes de té y aromática 🍵\n🎁 Incluye una bolsa de té de 50 g gratis." },
   { id: "cadena-aretes-plata", name: "Juego de cadena y aretes en plata", link: "", image: "", note: "Para brillar todos los días ✨" },
   { id: "tablero-acrilico", name: "Tablero acrílico", link: "https://www.mercadolibre.com.co/up/MCOU3795616814?pdp_filters=item_id:MCO1833148597", image: "", note: "Para organizar mis ideas y pendientes 📝" },
+  { id: "libro", name: "Un buen libro", link: "https://www.instagram.com/p/DNwiI7t2p25/", linkLabel: "Sugerencias", image: "", note: "Para perderme en una buena historia 📚" },
 ];
 // =======================
 
@@ -132,7 +133,7 @@ function render(items) {
     const actions = document.createElement("div"); actions.className = "actions";
     if (it.link) {
       const a = document.createElement("a"); a.className = "link"; a.href = it.link;
-      a.target = "_blank"; a.rel = "noopener"; a.textContent = "Ver";
+      a.target = "_blank"; a.rel = "noopener"; a.textContent = it.linkLabel || "Ver";
       actions.appendChild(a);
     } else if (it.image) {
       const a = document.createElement("a"); a.className = "link"; a.href = it.image;
